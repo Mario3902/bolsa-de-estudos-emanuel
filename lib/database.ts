@@ -1,10 +1,10 @@
 import mysql from "mysql2/promise"
 
 const dbConfig = {
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "bolsa_emanuel_xirimbimbi",
+  host: process.env.DB_HOST || "%",
+  user: process.env.DB_USER || "admin",
+  password: process.env.DB_PASSWORD || "Kelves1234@12@",
+  database: process.env.DB_NAME || "bolsadee_bolsa_estudos",
   port: Number.parseInt(process.env.DB_PORT || "3306"),
 }
 
