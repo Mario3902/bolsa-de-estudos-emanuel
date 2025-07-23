@@ -1,7 +1,7 @@
 import mysql from "mysql2/promise"
 
 const dbConfig = {
-  host: process.env.DB_HOST || "%",
+  host: process.env.DB_HOST || "0.0.0.0",
   user: process.env.DB_USER || "admin",
   password: process.env.DB_PASSWORD || "Kelves1234@12@",
   database: process.env.DB_NAME || "bolsadee_bolsa_estudos",
