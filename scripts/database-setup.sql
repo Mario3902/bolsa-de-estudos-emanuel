@@ -1,6 +1,6 @@
 -- Criar base de dados
-CREATE DATABASE IF NOT EXISTS bolsa_emanuel_xirimbimbi;
-USE bolsa_emanuel_xirimbimbi;
+CREATE DATABASE IF NOT EXISTS bolsadee_bolsa_estudos;
+USE bolsadee_bolsa_estudos;
 
 -- Tabela de utilizadores admin
 CREATE TABLE IF NOT EXISTS admin_users (
