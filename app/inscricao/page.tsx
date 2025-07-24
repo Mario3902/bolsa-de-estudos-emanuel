@@ -82,13 +82,13 @@ export default function InscricaoPage() {
       id: "universitario",
       title: "Universitários em Curso",
       description: "Para estudantes já matriculados no ensino superior",
-      requirements: "Média ≥ 16 valores • Declaração de matrícula",
+      requirements: "Média ≥ 16 valores • Declaração de notas",
       icon: <BookOpen className="h-6 w-6" />,
       color: "bg-green-500",
     },
     {
       id: "tecnico",
-      title: "Cursos Técnicos Superiores",
+      title: "Cursos Técnicos/Profissionas",
       description: "Para cursos técnicos e profissionalizantes",
       requirements: "Média ≥ 16 valores • Comprovativo de inscrição",
       icon: <Target className="h-6 w-6" />,
@@ -244,8 +244,16 @@ export default function InscricaoPage() {
         submitFormData.append(dbFieldName, value)
       })
 
-       // Lógica para garantir que os campos corretos são enviados para a DB
-      submitFormData.append('universidade', formData.universidade || formData.nomeEscola);
+      // **** CORREÇÃO APLICADA AQUI ****
+      // A lógica foi ajustada para enviar o campo 'universidade' apenas se o candidato estiver matriculado.
+      // Caso contrário, o campo não é enviado, permitindo que a DB o trate como NULL ou default.
+      if (formData.situacaoAcademica === 'matriculado') {
+        submitFormData.append('universidade', formData.universidade);
+      } else {
+        // Para candidatos não matriculados, enviamos o nome da escola do ensino médio como 'universidade'
+        // para manter um registo da instituição de origem, conforme a sua DB parece esperar.
+        submitFormData.append('universidade', formData.nomeEscola);
+      }
       submitFormData.append('curso', formData.curso);
       
       // Adicionar ficheiros (se o backend suportar)
