@@ -140,13 +140,8 @@ export default function InscricaoPage() {
 
     // Validar média mínima
     const media = Number.parseFloat(formData.mediaFinal)
-    if (isNaN(media) || media < 16) { // Alterado de 18 para 16
+    if (isNaN(media) || media < 18) {
       return false
-    }
-
-    // Se terminou o ensino médio, exigir o curso
-    if (formData.situacaoAcademica === "nao-matriculado") {
-      return isValid && formData.curso.trim() !== ""
     }
 
     // Se já matriculado, validar campos adicionais
@@ -238,7 +233,7 @@ export default function InscricaoPage() {
       // Adicionar dados do formulário com nomes corretos
       Object.entries(formData).forEach(([key, value]) => {
         // Pular campos que a DB não espera
-        if (["bilheteIdentidade", "situacaoAcademica", "nomeEscola", "numeroDependentes"].includes(key)) {
+        if (['bilheteIdentidade', 'situacaoAcademica', 'nomeEscola', 'numeroDependentes'].includes(key)) {
           return
         }
         
@@ -542,10 +537,10 @@ export default function InscricaoPage() {
                       value={formData.mediaFinal}
                       onChange={(e) => handleInputChange("mediaFinal", e.target.value)}
                       className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                      placeholder="16.0"
+                      placeholder="18.5"
                       required
                     />
-                    <p className="text-gray-400 text-sm">Mínimo: 16 valores</p>
+                    <p className="text-gray-400 text-sm">Mínimo: 18 valores</p>
                   </div>
                 </div>
 
