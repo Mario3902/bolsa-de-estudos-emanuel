@@ -32,6 +32,7 @@ export default function InscricaoPage() {
   const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
+    // Campos existentes
     nomeCompleto: "",
     dataNascimento: "",
     bilheteIdentidade: "",
@@ -46,6 +47,17 @@ export default function InscricaoPage() {
     cartaMotivacao: "",
     situacaoFinanceira: "",
     numeroDependentes: "",
+    
+    // NOVOS CAMPOS OBRIGATÓRIOS PARA A DB
+    genero: "",
+    endereco: "",
+    cidade: "",
+    provincia: "",
+    rendaFamiliar: "",
+    objetivos: "",
+    experienciaAcademica: "",
+    atividadesExtracurriculares: "",
+    referencias: "",
   })
 
   const categoriaUrl = searchParams.get("categoria")
@@ -116,7 +128,17 @@ export default function InscricaoPage() {
   }
 
   const validateStep1 = () => {
-    const requiredFields = ["nomeCompleto", "dataNascimento", "bilheteIdentidade", "telefone", "email"]
+    const requiredFields = [
+      "nomeCompleto", 
+      "dataNascimento", 
+      "bilheteIdentidade", 
+      "telefone", 
+      "email",
+      "genero",
+      "endereco",
+      "cidade",
+      "provincia"
+    ]
     return requiredFields.every((field) => formData[field as keyof typeof formData].trim() !== "")
   }
 
@@ -139,7 +161,23 @@ export default function InscricaoPage() {
   }
 
   const validateStep3 = () => {
-    return formData.cartaMotivacao.trim() !== "" && selectedCategory !== ""
+    const requiredFields = [
+      "cartaMotivacao",
+      "rendaFamiliar",
+      "objetivos",
+      "experienciaAcademica",
+      "atividadesExtracurriculares",
+      "referencias"
+    ]
+    
+    const isValid = requiredFields.every((field) => formData[field as keyof typeof formData].trim() !== "")
+    const hasCategory = selectedCategory !== ""
+    
+    // Validar renda familiar como número
+    const renda = Number.parseFloat(formData.rendaFamiliar)
+    const isRendaValid = !isNaN(renda) && renda >= 0
+    
+    return isValid && hasCategory && isRendaValid
   }
 
   const validateStep4 = () => {
@@ -165,7 +203,7 @@ export default function InscricaoPage() {
     }
 
     if (step === 3 && !validateStep3()) {
-      alert("Por favor, preencha a carta de motivação e selecione uma categoria.")
+      alert("Por favor, preencha todos os campos obrigatórios, incluindo renda familiar e textos descritivos.")
       return
     }
 
@@ -187,14 +225,31 @@ export default function InscricaoPage() {
     try {
       const submitFormData = new FormData()
 
-      // Adicionar dados do formulário
+      // Mapear campos com nomes corretos para a DB
+      const fieldMapping = {
+        nomeCompleto: 'nome_completo',
+        dataNascimento: 'data_nascimento',
+        mediaFinal: 'media_atual',
+        ano: 'ano_academico',
+        cartaMotivacao: 'motivacao',
+        situacaoFinanceira: 'situacao_financeira',
+        rendaFamiliar: 'renda_familiar',
+        experienciaAcademica: 'experiencia_academica',
+        atividadesExtracurriculares: 'atividades_extracurriculares'
+      }
+
+      // Adicionar dados do formulário com nomes corretos
       Object.entries(formData).forEach(([key, value]) => {
-        submitFormData.append(key, value)
+        // Pular campos que a DB não espera
+        if (['bilheteIdentidade', 'situacaoAcademica', 'nomeEscola', 'numeroDependentes'].includes(key)) {
+          return
+        }
+        
+        const dbFieldName = fieldMapping[key] || key
+        submitFormData.append(dbFieldName, value)
       })
 
-      submitFormData.append("categoria", selectedCategory)
-
-      // Adicionar ficheiros
+      // Adicionar ficheiros (se o backend suportar)
       Object.entries(uploadedFiles).forEach(([key, file]) => {
         submitFormData.append(`file_${key}`, file)
       })
@@ -336,6 +391,88 @@ export default function InscricaoPage() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="genero" className="text-white">
+                    Género *
+                  </Label>
+                  <Select
+                    onValueChange={(value) => handleInputChange("genero", value)}
+                    value={formData.genero}
+                  >
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Selecione o género" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="feminino">Feminino</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="endereco" className="text-white">
+                    Endereço *
+                  </Label>
+                  <Textarea
+                    id="endereco"
+                    value={formData.endereco}
+                    onChange={(e) => handleInputChange("endereco", e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    placeholder="Digite seu endereço completo"
+                    required
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cidade" className="text-white">
+                      Cidade *
+                    </Label>
+                    <Input
+                      id="cidade"
+                      value={formData.cidade}
+                      onChange={(e) => handleInputChange("cidade", e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                      placeholder="Nome da cidade"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="provincia" className="text-white">
+                      Província *
+                    </Label>
+                    <Select
+                      onValueChange={(value) => handleInputChange("provincia", value)}
+                      value={formData.provincia}
+                    >
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                        <SelectValue placeholder="Selecione a província" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Bengo">Bengo</SelectItem>
+                        <SelectItem value="Benguela">Benguela</SelectItem>
+                        <SelectItem value="Bié">Bié</SelectItem>
+                        <SelectItem value="Cabinda">Cabinda</SelectItem>
+                        <SelectItem value="Cuando Cubango">Cuando Cubango</SelectItem>
+                        <SelectItem value="Cuanza Norte">Cuanza Norte</SelectItem>
+                        <SelectItem value="Cuanza Sul">Cuanza Sul</SelectItem>
+                        <SelectItem value="Cunene">Cunene</SelectItem>
+                        <SelectItem value="Huambo">Huambo</SelectItem>
+                        <SelectItem value="Huíla">Huíla</SelectItem>
+                        <SelectItem value="Luanda">Luanda</SelectItem>
+                        <SelectItem value="Lunda Norte">Lunda Norte</SelectItem>
+                        <SelectItem value="Lunda Sul">Lunda Sul</SelectItem>
+                        <SelectItem value="Malanje">Malanje</SelectItem>
+                        <SelectItem value="Moxico">Moxico</SelectItem>
+                        <SelectItem value="Namibe">Namibe</SelectItem>
+                        <SelectItem value="Uíge">Uíge</SelectItem>
+                        <SelectItem value="Zaire">Zaire</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -466,7 +603,7 @@ export default function InscricaoPage() {
                 </CardTitle>
                 <CardDescription className="text-gray-300">
                   {selectedCategory
-                    ? "Confirme a categoria selecionada e escreva sua carta de motivação"
+                    ? "Confirme a categoria selecionada e preencha as informações adicionais"
                     : "Selecione a categoria que melhor se adequa ao seu perfil"}
                 </CardDescription>
               </CardHeader>
@@ -523,6 +660,62 @@ export default function InscricaoPage() {
                   <p className="text-gray-400 text-sm">Mínimo: 200 caracteres</p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="objetivos" className="text-white">
+                    Objetivos Académicos e Profissionais *
+                  </Label>
+                  <Textarea
+                    id="objetivos"
+                    value={formData.objetivos}
+                    onChange={(e) => handleInputChange("objetivos", e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 min-h-[120px]"
+                    placeholder="Descreva seus objetivos académicos e profissionais a curto e longo prazo..."
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="experienciaAcademica" className="text-white">
+                    Experiência Académica *
+                  </Label>
+                  <Textarea
+                    id="experienciaAcademica"
+                    value={formData.experienciaAcademica}
+                    onChange={(e) => handleInputChange("experienciaAcademica", e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 min-h-[120px]"
+                    placeholder="Descreva sua experiência académica, projetos, trabalhos de pesquisa, etc..."
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="atividadesExtracurriculares" className="text-white">
+                    Atividades Extracurriculares *
+                  </Label>
+                  <Textarea
+                    id="atividadesExtracurriculares"
+                    value={formData.atividadesExtracurriculares}
+                    onChange={(e) => handleInputChange("atividadesExtracurriculares", e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 min-h-[120px]"
+                    placeholder="Descreva suas atividades extracurriculares, voluntariado, desportos, etc..."
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="referencias" className="text-white">
+                    Referências *
+                  </Label>
+                  <Textarea
+                    id="referencias"
+                    value={formData.referencias}
+                    onChange={(e) => handleInputChange("referencias", e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 min-h-[120px]"
+                    placeholder="Forneça referências de professores, empregadores ou líderes comunitários (nome, cargo, contacto)..."
+                    required
+                  />
+                </div>
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="situacaoFinanceira" className="text-white">
@@ -543,17 +736,19 @@ export default function InscricaoPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="numeroDependentes" className="text-white">
-                      Número de Dependentes (Opcional)
+                    <Label htmlFor="rendaFamiliar" className="text-white">
+                      Renda Familiar Mensal (Kz) *
                     </Label>
                     <Input
-                      id="numeroDependentes"
+                      id="rendaFamiliar"
                       type="number"
                       min="0"
-                      value={formData.numeroDependentes}
-                      onChange={(e) => handleInputChange("numeroDependentes", e.target.value)}
+                      step="0.01"
+                      value={formData.rendaFamiliar}
+                      onChange={(e) => handleInputChange("rendaFamiliar", e.target.value)}
                       className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                      placeholder="0"
+                      placeholder="50000.00"
+                      required
                     />
                   </div>
                 </div>
@@ -726,21 +921,15 @@ export default function InscricaoPage() {
                 <div className="space-y-3">
                   <h3 className="text-white font-semibold text-lg">Dados Pessoais</h3>
                   <div className="grid md:grid-cols-2 gap-4 text-gray-300">
-                    <p>
-                      <strong>Nome:</strong> {formData.nomeCompleto}
-                    </p>
-                    <p>
-                      <strong>Data de Nascimento:</strong> {formData.dataNascimento}
-                    </p>
-                    <p>
-                      <strong>BI:</strong> {formData.bilheteIdentidade}
-                    </p>
-                    <p>
-                      <strong>Telefone:</strong> {formData.telefone}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {formData.email}
-                    </p>
+                    <p><strong>Nome:</strong> {formData.nomeCompleto}</p>
+                    <p><strong>Data de Nascimento:</strong> {formData.dataNascimento}</p>
+                    <p><strong>BI:</strong> {formData.bilheteIdentidade}</p>
+                    <p><strong>Telefone:</strong> {formData.telefone}</p>
+                    <p><strong>Email:</strong> {formData.email}</p>
+                    <p><strong>Género:</strong> {formData.genero}</p>
+                    <p><strong>Endereço:</strong> {formData.endereco}</p>
+                    <p><strong>Cidade:</strong> {formData.cidade}</p>
+                    <p><strong>Província:</strong> {formData.provincia}</p>
                   </div>
                 </div>
 
@@ -775,6 +964,46 @@ export default function InscricaoPage() {
                 <div className="space-y-3">
                   <h3 className="text-white font-semibold text-lg">Categoria</h3>
                   <Badge className="bg-emerald-500 text-white">{getSelectedCategoryInfo()?.title}</Badge>
+                </div>
+
+                {/* Informações Financeiras */}
+                <div className="space-y-3">
+                  <h3 className="text-white font-semibold text-lg">Informações Financeiras</h3>
+                  <div className="grid md:grid-cols-2 gap-4 text-gray-300">
+                    <p><strong>Situação Financeira:</strong> {formData.situacaoFinanceira}</p>
+                    <p><strong>Renda Familiar:</strong> {formData.rendaFamiliar} Kz</p>
+                  </div>
+                </div>
+
+                {/* Informações Académicas Adicionais */}
+                <div className="space-y-3">
+                  <h3 className="text-white font-semibold text-lg">Informações Académicas</h3>
+                  <div className="space-y-2 text-gray-300">
+                    <div>
+                      <strong>Objetivos:</strong>
+                      <div className="bg-white/5 p-2 rounded mt-1">
+                        <p className="text-sm">{formData.objetivos}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <strong>Experiência Académica:</strong>
+                      <div className="bg-white/5 p-2 rounded mt-1">
+                        <p className="text-sm">{formData.experienciaAcademica}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <strong>Atividades Extracurriculares:</strong>
+                      <div className="bg-white/5 p-2 rounded mt-1">
+                        <p className="text-sm">{formData.atividadesExtracurriculares}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <strong>Referências:</strong>
+                      <div className="bg-white/5 p-2 rounded mt-1">
+                        <p className="text-sm">{formData.referencias}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Documentos */}
@@ -889,3 +1118,4 @@ export default function InscricaoPage() {
     </div>
   )
 }
+
