@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { executeQuery } from "@/lib/database"
+import { writeFile, mkdir } from "fs/promises"
+import { join } from "path"
+import { existsSync } from "fs"
 
 export async function POST(request: NextRequest) {
   try {
@@ -94,9 +97,68 @@ export async function POST(request: NextRequest) {
 
     const applicationId = result.insertId
 
+    // ========== PROCESSAMENTO TEMPORÁRIO DE ARQUIVOS ==========
+    const fileFields = [
+      "file_bilheteIdentidade",
+      "file_certificadoEnsino", 
+      "file_declaracaoNotas",
+      "file_declaracaoMatricula",
+      "file_cartaRecomendacao",
+    ]
+
+    const uploadedFiles: string[] = []
+    const documentsDir = join(process.cwd(), "public", "documents")
+
+    // Criar diretório se não existir
+    if (!existsSync(documentsDir)) {
+      await mkdir(documentsDir, { recursive: true })
+    }
+
+    for (const fieldName of fileFields) {
+      const file = formData.get(fieldName) as File
+      if (file && file.size > 0) {
+        try {
+          // Validar arquivo
+          const allowedTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"]
+          if (!allowedTypes.includes(file.type)) {
+            console.warn(`Tipo de arquivo não permitido: ${file.type} para ${fieldName}`)
+            continue
+          }
+
+          // Validar tamanho (máximo 5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            console.warn(`Arquivo muito grande: ${file.size} bytes para ${fieldName}`)
+            continue
+          }
+
+          // Gerar nome único para o arquivo
+          const timestamp = Date.now()
+          const extension = file.name.split('.').pop() || 'bin'
+          const uniqueFileName = `${applicationId}_${fieldName}_${timestamp}.${extension}`
+          const filePath = join(documentsDir, uniqueFileName)
+
+          // Salvar arquivo temporariamente
+          const bytes = await file.arrayBuffer()
+          const buffer = Buffer.from(bytes)
+          await writeFile(filePath, buffer)
+
+          uploadedFiles.push(uniqueFileName)
+          console.log(`Arquivo salvo temporariamente: ${uniqueFileName}`)
+
+        } catch (fileError) {
+          console.error(`Erro ao processar arquivo ${fieldName}:`, fileError)
+          // Continuar processamento mesmo se um arquivo falhar
+        }
+      }
+    }
+
     return NextResponse.json({
       message: "Candidatura submetida com sucesso!",
       applicationId,
+      uploadedFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
+      note: uploadedFiles.length > 0 
+        ? "Documentos foram recebidos e armazenados temporariamente." 
+        : "Candidatura registrada sem documentos anexos."
     })
   } catch (error) {
     console.error("Erro ao processar candidatura:", error)
@@ -243,3 +305,4 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
+
