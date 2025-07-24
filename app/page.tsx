@@ -10,7 +10,7 @@ export default function HomePage() {
       id: 1,
       title: "Recém-Formados do Ensino Médio",
       description: "Para quem terminou o ensino médio e quer ingressar na universidade",
-      requirements: "Média ≥ 18 valores • Certificado de conclusão",
+      requirements: "Média ≥ 16 valores • Certificado de conclusão",
       icon: <GraduationCap className="h-8 w-8" />,
       color: "bg-emerald-500",
     },
@@ -18,25 +18,17 @@ export default function HomePage() {
       id: 2,
       title: "Universitários em Curso",
       description: "Para estudantes já matriculados no ensino superior",
-      requirements: "Média ≥ 18 valores • Declaração de matrícula",
+      requirements: "Média ≥ 16 valores • Declaração de Notas",
       icon: <BookOpen className="h-8 w-8" />,
       color: "bg-teal-500",
     },
     {
       id: 3,
-      title: "Cursos Técnicos Superiores",
+      title: "Cursos Técnicos/Profissional",
       description: "Para cursos técnicos e profissionalizantes",
       requirements: "Média ≥ 18 valores • Comprovativo de inscrição",
       icon: <Target className="h-8 w-8" />,
       color: "bg-cyan-500",
-    },
-    {
-      id: 4,
-      title: "Pós-Graduação e Mestrado",
-      description: "Para estudantes de pós-graduação e mestrado",
-      requirements: "Licenciatura concluída • Média ≥ 18 valores",
-      icon: <Award className="h-8 w-8" />,
-      color: "bg-green-500",
     },
   ]
 
@@ -52,7 +44,7 @@ export default function HomePage() {
               <div className="h-10 w-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-center">
                 <span className="text-white font-bold text-lg">E</span>
               </div>
-              <span className="text-white text-xl font-bold">Programa Bolsa de estudos Emanuel Xirimbimbi</span>
+              <span className="text-white text-xl font-bold">Bolsa de estudos Emanuel Xirimbimbi</span>
             </div>
             <Link href="/inscricao">
               <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
@@ -375,7 +367,7 @@ export default function HomePage() {
       <footer className="py-8 px-4 bg-black/30 border-t border-white/10">
         <div className="container mx-auto text-center">
           <p className="text-gray-300 text-sm">
-            © 2025 Programa Bolsa de estudos Emanuel Xirimbimbi. Todos os direitos reservados.
+            © 2025 Bolsa de estudos Emanuel Xirimbimbi. Todos os direitos reservados.
           </p>
         </div>
       </footer>
@@ -383,7 +375,7 @@ export default function HomePage() {
       {/* WhatsApp Button */}
       <div className="fixed bottom-6 right-6 z-50">
         <a
-          href="https://wa.me/244900000000?text=Olá! Tenho dúvidas sobre o Programa Bolsa de estudos Emanuel Xirimbimbi"
+          href="https://wa.me/244923440172?text=Olá! Tenho dúvidas sobre o Programa Bolsa de estudos Emanuel Xirimbimbi"
           target="_blank"
           rel="noopener noreferrer"
           className="bg-emerald-500 hover:bg-emerald-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center group"
