@@ -73,7 +73,7 @@ export default function InscricaoPage() {
       id: "ensino-medio",
       title: "Recém-Formados do Ensino Médio",
       description: "Para quem terminou o ensino médio e quer ingressar na universidade",
-      requirements: "Média ≥ 18 valores • Certificado de conclusão",
+      requirements: "Média ≥ 16 valores • Certificado de conclusão",
       icon: <GraduationCap className="h-6 w-6" />,
       color: "bg-emerald-500",
     },
@@ -81,7 +81,7 @@ export default function InscricaoPage() {
       id: "universitario",
       title: "Universitários em Curso",
       description: "Para estudantes já matriculados no ensino superior",
-      requirements: "Média ≥ 18 valores • Declaração de matrícula",
+      requirements: "Média ≥ 16 valores • Declaração de matrícula",
       icon: <BookOpen className="h-6 w-6" />,
       color: "bg-green-500",
     },
@@ -89,17 +89,9 @@ export default function InscricaoPage() {
       id: "tecnico",
       title: "Cursos Técnicos Superiores",
       description: "Para cursos técnicos e profissionalizantes",
-      requirements: "Média ≥ 18 valores • Comprovativo de inscrição",
+      requirements: "Média ≥ 16 valores • Comprovativo de inscrição",
       icon: <Target className="h-6 w-6" />,
       color: "bg-orange-500",
-    },
-    {
-      id: "pos-graduacao",
-      title: "Pós-Graduação e Mestrado",
-      description: "Para estudantes de pós-graduação e mestrado",
-      requirements: "Licenciatura concluída • Média ≥ 18 valores",
-      icon: <Award className="h-6 w-6" />,
-      color: "bg-purple-500",
     },
   ]
 
@@ -520,6 +512,19 @@ export default function InscricaoPage() {
                     />
                   </div>
                   <div className="space-y-2">
+                      <Label htmlFor="curso" className="text-white">
+                        Curso *
+                      </Label>
+                      <Input
+                        id="curso"
+                        value={formData.curso}
+                        onChange={(e) => handleInputChange("curso", e.target.value)}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        placeholder="Nome do curso"
+                        required
+                      />
+                    </div>
+                  <div className="space-y-2">
                     <Label htmlFor="mediaFinal" className="text-white">
                       Média Final do Ensino Médio *
                     </Label>
@@ -551,19 +556,6 @@ export default function InscricaoPage() {
                         onChange={(e) => handleInputChange("universidade", e.target.value)}
                         className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                         placeholder="Nome da instituição"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="curso" className="text-white">
-                        Curso *
-                      </Label>
-                      <Input
-                        id="curso"
-                        value={formData.curso}
-                        onChange={(e) => handleInputChange("curso", e.target.value)}
-                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                        placeholder="Nome do curso"
                         required
                       />
                     </div>
