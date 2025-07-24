@@ -16,25 +16,73 @@ export async function GET() {
       executeQuery(rejeitadosQuery),
     ])
 
-    // Estatísticas por categoria
-    const categoriaQuery = `
-      SELECT categoria, COUNT(*) as total 
+    // Estatísticas por província (campo que existe na DB)
+    const provinciaQuery = `
+      SELECT provincia, COUNT(*) as total 
       FROM applications 
-      GROUP BY categoria
+      WHERE provincia IS NOT NULL AND provincia != ''
+      GROUP BY provincia
+      ORDER BY total DESC
     `
-    const categoriaStats = await executeQuery(categoriaQuery)
+    const provinciaStats = await executeQuery(provinciaQuery)
 
-    // Candidaturas por mês (últimos 6 meses)
+    // Estatísticas por género (campo que existe na DB)
+    const generoQuery = `
+      SELECT genero, COUNT(*) as total 
+      FROM applications 
+      WHERE genero IS NOT NULL AND genero != ''
+      GROUP BY genero
+    `
+    const generoStats = await executeQuery(generoQuery)
+
+    // Estatísticas por universidade (top 10)
+    const universidadeQuery = `
+      SELECT universidade, COUNT(*) as total 
+      FROM applications 
+      WHERE universidade IS NOT NULL AND universidade != ''
+      GROUP BY universidade
+      ORDER BY total DESC
+      LIMIT 10
+    `
+    const universidadeStats = await executeQuery(universidadeQuery)
+
+    // Candidaturas por mês (últimos 6 meses) - usando data_submissao
     const monthlyQuery = `
       SELECT 
-        DATE_FORMAT(data_candidatura, '%Y-%m') as mes,
+        DATE_FORMAT(data_submissao, '%Y-%m') as mes,
         COUNT(*) as total
       FROM applications 
-      WHERE data_candidatura >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-      GROUP BY DATE_FORMAT(data_candidatura, '%Y-%m')
+      WHERE data_submissao >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+      GROUP BY DATE_FORMAT(data_submissao, '%Y-%m')
       ORDER BY mes
     `
     const monthlyStats = await executeQuery(monthlyQuery)
+
+    // Estatísticas de média acadêmica
+    const mediaQuery = `
+      SELECT 
+        AVG(media_atual) as media_geral,
+        MIN(media_atual) as media_minima,
+        MAX(media_atual) as media_maxima,
+        COUNT(CASE WHEN media_atual >= 18 THEN 1 END) as acima_18,
+        COUNT(CASE WHEN media_atual >= 16 AND media_atual < 18 THEN 1 END) as entre_16_18,
+        COUNT(CASE WHEN media_atual < 16 THEN 1 END) as abaixo_16
+      FROM applications 
+      WHERE media_atual IS NOT NULL
+    `
+    const mediaStats = await executeQuery(mediaQuery)
+
+    // Estatísticas de situação financeira
+    const financeiraQuery = `
+      SELECT 
+        situacao_financeira, 
+        COUNT(*) as total,
+        AVG(renda_familiar) as renda_media
+      FROM applications 
+      WHERE situacao_financeira IS NOT NULL AND situacao_financeira != ''
+      GROUP BY situacao_financeira
+    `
+    const financeiraStats = await executeQuery(financeiraQuery)
 
     return NextResponse.json({
       totals: {
@@ -43,8 +91,19 @@ export async function GET() {
         aprovados: aprovadosResult[0].total,
         rejeitados: rejeitadosResult[0].total,
       },
-      byCategory: categoriaStats,
+      byProvincia: provinciaStats,
+      byGenero: generoStats,
+      byUniversidade: universidadeStats,
       monthly: monthlyStats,
+      mediaAcademica: mediaStats[0] || {
+        media_geral: 0,
+        media_minima: 0,
+        media_maxima: 0,
+        acima_18: 0,
+        entre_16_18: 0,
+        abaixo_16: 0
+      },
+      situacaoFinanceira: financeiraStats,
     })
   } catch (error) {
     console.error("Erro ao buscar estatísticas:", error)
@@ -56,8 +115,19 @@ export async function GET() {
         aprovados: 0,
         rejeitados: 0,
       },
-      byCategory: [],
+      byProvincia: [],
+      byGenero: [],
+      byUniversidade: [],
       monthly: [],
+      mediaAcademica: {
+        media_geral: 0,
+        media_minima: 0,
+        media_maxima: 0,
+        acima_18: 0,
+        entre_16_18: 0,
+        abaixo_16: 0
+      },
+      situacaoFinanceira: [],
     })
   }
 }
