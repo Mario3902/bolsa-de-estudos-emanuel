@@ -68,6 +68,7 @@ export default function InscricaoPage() {
     }
   }, [categoriaUrl])
 
+  // MODIFICAÇÃO 1: Array 'categories' atualizado para remover a opção de mestrado.
   const categories = [
     {
       id: "ensino-medio",
@@ -134,19 +135,21 @@ export default function InscricaoPage() {
     return requiredFields.every((field) => formData[field as keyof typeof formData].trim() !== "")
   }
 
+  // MODIFICAÇÃO 2 e 3: Validação do Passo 2 atualizada
   const validateStep2 = () => {
-    const requiredFields = ["situacaoAcademica", "nomeEscola", "mediaFinal"]
+    // O campo 'curso' agora é sempre obrigatório
+    const requiredFields = ["situacaoAcademica", "nomeEscola", "mediaFinal", "curso"]
     const isValid = requiredFields.every((field) => formData[field as keyof typeof formData].trim() !== "")
 
-    // Validar média mínima
+    // A média mínima agora é 16
     const media = Number.parseFloat(formData.mediaFinal)
-    if (isNaN(media) || media < 18) {
+    if (isNaN(media) || media < 16) {
       return false
     }
 
-    // Se já matriculado, validar campos adicionais
+    // A validação de 'universidade' continua a aplicar-se apenas se matriculado
     if (formData.situacaoAcademica === "matriculado") {
-      return isValid && formData.universidade.trim() !== "" && formData.curso.trim() !== ""
+      return isValid && formData.universidade.trim() !== ""
     }
 
     return isValid
@@ -241,6 +244,10 @@ export default function InscricaoPage() {
         submitFormData.append(dbFieldName, value)
       })
 
+       // Lógica para garantir que os campos corretos são enviados para a DB
+      submitFormData.append('universidade', formData.universidade || formData.nomeEscola);
+      submitFormData.append('curso', formData.curso);
+      
       // Adicionar ficheiros (se o backend suportar)
       Object.entries(uploadedFiles).forEach(([key, file]) => {
         submitFormData.append(`file_${key}`, file)
@@ -512,19 +519,6 @@ export default function InscricaoPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                      <Label htmlFor="curso" className="text-white">
-                        Curso *
-                      </Label>
-                      <Input
-                        id="curso"
-                        value={formData.curso}
-                        onChange={(e) => handleInputChange("curso", e.target.value)}
-                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                        placeholder="Nome do curso"
-                        required
-                      />
-                    </div>
-                  <div className="space-y-2">
                     <Label htmlFor="mediaFinal" className="text-white">
                       Média Final do Ensino Médio *
                     </Label>
@@ -537,15 +531,31 @@ export default function InscricaoPage() {
                       value={formData.mediaFinal}
                       onChange={(e) => handleInputChange("mediaFinal", e.target.value)}
                       className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                      placeholder="18.5"
+                      placeholder="16.0"
                       required
                     />
-                    <p className="text-gray-400 text-sm">Mínimo: 18 valores</p>
+                    {/* MODIFICAÇÃO 2: Texto da nota mínima atualizado */}
+                    <p className="text-gray-400 text-sm">Mínimo: 16 valores</p>
                   </div>
+                </div>
+                
+                {/* MODIFICAÇÃO 3: Campo 'curso' movido para fora da condição e agora é sempre visível */}
+                <div className="space-y-2">
+                  <Label htmlFor="curso" className="text-white">
+                    {formData.situacaoAcademica === 'matriculado' ? 'Curso que frequenta *' : 'Curso que pretende frequentar *'}
+                  </Label>
+                  <Input
+                    id="curso"
+                    value={formData.curso}
+                    onChange={(e) => handleInputChange("curso", e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    placeholder="Ex: Engenharia Informática"
+                    required
+                  />
                 </div>
 
                 {formData.situacaoAcademica === "matriculado" && (
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <>
                     <div className="space-y-2">
                       <Label htmlFor="universidade" className="text-white">
                         Universidade/Instituto *
@@ -559,33 +569,30 @@ export default function InscricaoPage() {
                         required
                       />
                     </div>
-                  </div>
-                )}
-
-                {formData.situacaoAcademica === "matriculado" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="ano" className="text-white">
-                      Ano Académico
-                    </Label>
-                    <Select onValueChange={(value) => handleInputChange("ano", value)} value={formData.ano}>
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                        <SelectValue placeholder="Selecione o ano" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1º Ano</SelectItem>
-                        <SelectItem value="2">2º Ano</SelectItem>
-                        <SelectItem value="3">3º Ano</SelectItem>
-                        <SelectItem value="4">4º Ano</SelectItem>
-                        <SelectItem value="5">5º Ano</SelectItem>
-                        <SelectItem value="6">6º Ano</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ano" className="text-white">
+                        Ano Académico
+                      </Label>
+                      <Select onValueChange={(value) => handleInputChange("ano", value)} value={formData.ano}>
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                          <SelectValue placeholder="Selecione o ano" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1º Ano</SelectItem>
+                          <SelectItem value="2">2º Ano</SelectItem>
+                          <SelectItem value="3">3º Ano</SelectItem>
+                          <SelectItem value="4">4º Ano</SelectItem>
+                          <SelectItem value="5">5º Ano</SelectItem>
+                          <SelectItem value="6">6º Ano</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
           )}
-
+          
           {/* Step 3: Categoria e Motivação */}
           {step === 3 && (
             <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
